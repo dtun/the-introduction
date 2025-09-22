@@ -14,6 +14,7 @@ export default function UserProfileForm() {
   const {
     control,
     handleSubmit,
+    reset,
     formState: { errors, isSubmitting },
   } = useForm<UserProfile>({
     resolver: zodResolver(userProfileSchema),
@@ -29,7 +30,10 @@ export default function UserProfileForm() {
     Alert.alert(
       "Profile Created!",
       `Name: ${data.name}\nAge: ${data.age}\nGender: ${data.gender}\nLocation: ${data.location}`,
-      [{ text: "OK" }]
+      [{
+        text: "OK",
+        onPress: () => reset()
+      }]
     );
   };
 
