@@ -132,7 +132,7 @@ export class AIService {
     const questions = {
       name: "What's your name?",
       age: "How old are you?",
-      gender: "What's your gender? (male, female, other, or prefer not to say)",
+      gender: "What's your biological gender? (male or female)",
       location: "Where are you from?",
     };
 

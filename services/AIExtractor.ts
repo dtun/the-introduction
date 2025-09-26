@@ -7,7 +7,7 @@ import { z } from "zod";
 const extractionSchema = z.object({
   name: z.string().optional(),
   age: z.number().int().min(13).max(120).optional(),
-  gender: z.enum(["male", "female", "other", "prefer-not-to-say"]).optional(),
+  gender: z.enum(["male", "female"]).optional(),
   location: z.string().optional(),
 });
 
@@ -37,7 +37,7 @@ CURRENT PROFILE: ${JSON.stringify(currentProfile)}
 Your task is to identify if the user is providing any of these pieces of information:
 - name: Their full name or first name
 - age: Their age in years (must be a number between 13-120)
-- gender: "male", "female", "other", or "prefer-not-to-say"
+- gender: Biological gender - "male" or "female" only
 - location: Where they live (city, state, country)
 
 EXAMPLES:
@@ -46,6 +46,7 @@ User: "I'm 25" → {"age": 25}
 User: "I'm from New York" → {"location": "New York"}
 User: "I'm male" → {"gender": "male"}
 User: "Danny, 25, male, NYC" → {"name": "Danny", "age": 25, "gender": "male", "location": "NYC"}
+User: "I'm female" → {"gender": "female"}
 
 If the message doesn't contain clear profile information, return an empty object {}.`,
         prompt: `Analyze this message and extract any profile information: "${userMessage}"`,

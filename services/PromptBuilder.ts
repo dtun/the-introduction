@@ -28,7 +28,7 @@ Respond naturally and help collect the missing profile information. Be conversat
 PROFILE SCHEMA:
 - name (string, 2-50 chars) - Full name
 - age (number, 13-120) - Age in years
-- gender ("male", "female", "other", "prefer-not-to-say") - Gender identity
+- gender ("male", "female") - Biological gender
 - location (string, 2-100 chars) - City, state/country
 
 CURRENT PROFILE: ${JSON.stringify(currentProfile)}

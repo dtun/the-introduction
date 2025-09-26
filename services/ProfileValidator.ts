@@ -151,12 +151,10 @@ export class ProfileValidator {
     }
 
     const normalizedGender = gender.toLowerCase().trim();
-    const validGenders = ["male", "female", "other", "prefer-not-to-say"];
+    const validGenders = ["male", "female"];
 
     if (!validGenders.includes(normalizedGender)) {
-      errors.push(
-        "Gender must be one of: male, female, other, prefer-not-to-say"
-      );
+      errors.push("Biological gender must be either male or female");
       return;
     }
 

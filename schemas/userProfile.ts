@@ -10,8 +10,8 @@ export const userProfileSchema = z.object({
     .int("Age must be a whole number")
     .min(13, "Must be at least 13 years old")
     .max(120, "Age must be less than 120"),
-  gender: z.enum(["male", "female", "other", "prefer-not-to-say"], {
-    message: "Please select a gender",
+  gender: z.enum(["male", "female"], {
+    message: "Please select biological gender",
   }),
   location: z
     .string()
@@ -24,6 +24,4 @@ export type UserProfile = z.infer<typeof userProfileSchema>;
 export const genderOptions = [
   { label: "Male", value: "male" },
   { label: "Female", value: "female" },
-  { label: "Other", value: "other" },
-  { label: "Prefer not to say", value: "prefer-not-to-say" },
 ] as const;
