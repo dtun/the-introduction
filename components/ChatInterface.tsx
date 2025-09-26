@@ -1,5 +1,7 @@
 import MessageBubble from "@/components/MessageBubble";
 import { Text, View } from "@/components/Themed";
+import { UserProfile } from "@/schemas/userProfile";
+import { AIService } from "@/services/AIService";
 import { Message } from "@/types/chat";
 import React, { useRef, useState } from "react";
 import {
@@ -12,26 +14,125 @@ import {
 } from "react-native";
 
 export default function ChatInterface() {
-  const [messages, setMessages] = useState<Message[]>([]);
+  const [messages, setMessages] = useState<Message[]>([
+    {
+      id: "welcome",
+      text: "Hi! I'm here to help you create your profile. Let's start with a simple question - what's your name?",
+      timestamp: new Date(),
+      sender: "system",
+    },
+  ]);
   const [inputText, setInputText] = useState("");
+  const [extractedProfile, setExtractedProfile] = useState<
+    Partial<UserProfile>
+  >({});
+
+  const [isProfileComplete, setIsProfileComplete] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
   const flatListRef = useRef<FlatList>(null);
 
   const generateId = () => {
     return Date.now().toString() + Math.random().toString(36).substr(2, 9);
   };
 
-  const sendMessage = () => {
-    if (inputText.trim().length === 0) return;
+  const sendMessage = async () => {
+    if (inputText.trim().length === 0 || isProcessing) return;
 
-    const newMessage: Message = {
+    const userMessage: Message = {
       id: generateId(),
       text: inputText.trim(),
       timestamp: new Date(),
       sender: "user",
     };
 
-    setMessages((prevMessages) => [...prevMessages, newMessage]);
+    setMessages((prev) => [...prev, userMessage]);
     setInputText("");
+    setIsProcessing(true);
+
+    try {
+      // Use AIService to process the message
+      const aiResponse = await AIService.processMessage(
+        userMessage.text,
+        extractedProfile,
+        [...messages, userMessage]
+      );
+
+      // Update extracted profile with new data
+      setExtractedProfile(aiResponse.extractedData);
+
+      // Check if profile is complete
+      if (AIService.isProfileComplete(aiResponse.extractedData)) {
+        setIsProfileComplete(true);
+
+        // Validate the complete profile
+        const validation = await AIService.validateProfileCompletion(
+          aiResponse.extractedData
+        );
+
+        if (validation.isValid) {
+          const profileSummary: Message = {
+            id: generateId(),
+            text: `Perfect! Here's your completed profile:\n\nName: ${aiResponse.extractedData.name}\nAge: ${aiResponse.extractedData.age}\nGender: ${aiResponse.extractedData.gender}\nLocation: ${aiResponse.extractedData.location}\n\nYour profile has been successfully created!`,
+            timestamp: new Date(),
+            sender: "system",
+          };
+
+          setTimeout(() => {
+            setMessages((prev) => [...prev, profileSummary]);
+            setTimeout(() => {
+              flatListRef.current?.scrollToEnd({ animated: true });
+            }, 100);
+          }, 1000);
+        } else {
+          // Profile validation failed, show errors and continue
+          const errorMessage: Message = {
+            id: generateId(),
+            text: `I found some issues with the profile: ${validation.errors.join(
+              ", "
+            )}. Let's fix these.`,
+            timestamp: new Date(),
+            sender: "system",
+          };
+
+          setTimeout(() => {
+            setMessages((prev) => [...prev, errorMessage]);
+          }, 1000);
+
+          setIsProfileComplete(false);
+        }
+      } else {
+        // Continue conversation
+        const systemMessage: Message = {
+          id: generateId(),
+          text: aiResponse.chatResponse,
+          timestamp: new Date(),
+          sender: "system",
+        };
+
+        setTimeout(() => {
+          setMessages((prev) => [...prev, systemMessage]);
+          setTimeout(() => {
+            flatListRef.current?.scrollToEnd({ animated: true });
+          }, 100);
+        }, 1000);
+      }
+    } catch (error) {
+      console.error("Error processing message:", error);
+
+      // Fallback error message
+      const errorMessage: Message = {
+        id: generateId(),
+        text: "Sorry, I had trouble processing that. Could you try again?",
+        timestamp: new Date(),
+        sender: "system",
+      };
+
+      setTimeout(() => {
+        setMessages((prev) => [...prev, errorMessage]);
+      }, 1000);
+    } finally {
+      setIsProcessing(false);
+    }
 
     setTimeout(() => {
       flatListRef.current?.scrollToEnd({ animated: true });
@@ -78,20 +179,22 @@ export default function ChatInterface() {
           multiline
           maxLength={500}
           returnKeyType="send"
-          onSubmitEditing={sendMessage}
+          onSubmitEditing={() => sendMessage()}
         />
         <TouchableOpacity
           style={[
             styles.sendButton,
-            inputText.trim().length === 0 && styles.sendButtonDisabled,
+            (inputText.trim().length === 0 || isProcessing) &&
+              styles.sendButtonDisabled,
           ]}
-          onPress={sendMessage}
-          disabled={inputText.trim().length === 0}
+          onPress={() => sendMessage()}
+          disabled={inputText.trim().length === 0 || isProcessing}
         >
           <Text
             style={[
               styles.sendButtonText,
-              inputText.trim().length === 0 && styles.sendButtonTextDisabled,
+              (inputText.trim().length === 0 || isProcessing) &&
+                styles.sendButtonTextDisabled,
             ]}
           >
             Send
