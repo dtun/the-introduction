@@ -141,10 +141,6 @@ export class ResponseProcessor {
       extracted.gender = "male";
     } else if (text.toLowerCase().includes("female")) {
       extracted.gender = "female";
-    } else if (text.toLowerCase().includes("other")) {
-      extracted.gender = "other";
-    } else if (text.toLowerCase().includes("prefer not to say")) {
-      extracted.gender = "prefer-not-to-say";
     }
 
     return extracted;

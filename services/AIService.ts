@@ -92,7 +92,6 @@ export class AIService {
       const { text } = await generateText({
         model: this.openai("gpt-4o-mini"),
         prompt,
-        maxTokens: 150,
         temperature: 0.7,
       });
 
